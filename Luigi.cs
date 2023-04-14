@@ -19,8 +19,14 @@ using Il2CppAssets.Scripts.Models.Towers.Projectiles.Behaviors;
 using Il2CppAssets.Scripts.Models.Bloons.Behaviors;
 using Il2CppAssets.Scripts.Models.Towers.Behaviors;
 using Il2CppAssets.Scripts.Models.TowerSets;
+using Il2CppAssets.Scripts.Models.Towers.Behaviors.Attack;
+using Il2Cpp;
+using Il2CppAssets.Scripts.Models.Towers.Weapons;
+using UnityEngine.Assertions;
+using Il2CppAssets.Scripts.Models.Towers.Filters;
+using Il2CppAssets.Scripts.Models.Towers.Behaviors.Abilities.Behaviors;
 
-[assembly: MelonInfo(typeof(Luigi.LuigiTower), ModHelperData.Name, ModHelperData.Version, ModHelperData.RepoOwner)]
+[assembly: MelonInfo(typeof(Luigi.LuigiTowerAlt), ModHelperData.Name, ModHelperData.Version, ModHelperData.RepoOwner)]
 [assembly: MelonGame("Ninja Kiwi", "BloonsTD6")]
 
 namespace Luigi;
@@ -34,21 +40,21 @@ public class FireBallDisplay : ModDisplay
         Set2DTexture(node, "FireBallDisplay");
     }   
 }
-public class LuigiTower : BloonsTD6Mod
+public class LuigiTowerAlt : BloonsTD6Mod
 {
     public override void OnApplicationStart()
     {
-        ModHelper.Msg<LuigiTower>("Luigi loaded!");
+        ModHelper.Msg<LuigiTowerAlt>("Alt Luigi loaded!");
     }
 }
-public class Luigi : ModTower
+public class LuigiAlt : ModTower
 {
     public override TowerSet TowerSet => TowerSet.Magic;
     public override string BaseTower => TowerType.DartMonkey;
     public override int Cost => 650;
-    public override int TopPathUpgrades => 0;
-    public override int MiddlePathUpgrades => 5;
-    public override int BottomPathUpgrades => 0;
+    public override int TopPathUpgrades => 5;
+    public override int MiddlePathUpgrades => 3;
+    public override int BottomPathUpgrades => 4;
     public override string Description => "Luigi is here in BTD6";
 
     public override bool Use2DModel => true;
@@ -58,8 +64,10 @@ public class Luigi : ModTower
 
     public override void ModifyBaseTowerModel(TowerModel towerModel)
     {
-        towerModel.GetAttackModel().weapons[0].projectile = Game.instance.model.GetTower(TowerType.MonkeySub).GetAttackModel().weapons[0].projectile.Duplicate();
-        towerModel.GetAttackModel().weapons[0].projectile.GetDamageModel().immuneBloonProperties = 0;
+        //towerModel.GetAttackModel().weapons[0].projectile = Game.instance.model.GetTower(TowerType.MonkeySub).GetAttackModel().weapons[0].projectile.Duplicate();
+        var attackModel = towerModel.GetBehavior<AttackModel>();
+        towerModel.GetAttackModel().weapons[0].projectile = Game.instance.model.GetTower(TowerType.WizardMonkey).GetAttackModel().weapons[0].projectile.Duplicate();
+        towerModel.GetAttackModel().weapons[0].projectile.GetDamageModel().immuneBloonProperties = BloonProperties.Purple; // CAN POP LEAD
         towerModel.GetAttackModel().weapons[0].projectile.ApplyDisplay<FireBallDisplay>();
         
     }
@@ -69,34 +77,203 @@ public class Luigi : ModTower
         return "LuigiDisplay";
     }
 }
-public class FlameBlast : ModUpgrade<Luigi>
+public class GuidedFireballs : ModUpgrade<LuigiAlt>
+{
+    // public override string Portrait => "Don't need to override this, using the default of Pair-Portrait.png";
+    // public override string Icon => "Don't need to override this, using the default of Pair-Icon.png";
+    public override string Portrait => "LuigiIcon";
+    public override int Path => TOP;
+    public override int Tier => 1;
+    public override int Cost => 150;
+
+    // public override string DisplayName => "Don't need to override this, the default turns it into 'Pair'"
+
+    // public override string Description => "Fireballs now light bloons on fire upon landing";
+    public override string Description => "Fireballs now seek out Bloons";
+
+    public override void ApplyUpgrade(TowerModel towerModel)
+    {
+        var attackModel = towerModel.GetAttackModel();
+        var projectile = attackModel.weapons[0].projectile;
+        attackModel.weapons[0].projectile.collisionPasses = new int[] { -1, 0, 1 };
+        attackModel.weapons[0].projectile.AddBehavior(Game.instance.model.GetTowerFromId("WizardMonkey-100").GetAttackModel().weapons[0].projectile.GetBehavior<TrackTargetModel>().Duplicate());
+        //foreach (var beh in Game.instance.model.GetTowerFromId("WizardMonkey-100").GetAttackModel().weapons[0].projectile.GetBehaviors<AddBehaviorToBloonModel>())
+        //{
+        //    attackModel.weapons[0].projectile.AddBehavior(beh.Duplicate());
+        //}
+        //towerModel.GetDescendants<FilterInvisibleModel>().ForEach(model => model.isActive = false);
+    }
+}
+public class FlameBlast : ModUpgrade<LuigiAlt>
+{
+    // public override string Portrait => "Don't need to override this, using the default of Pair-Portrait.png";
+    // public override string Icon => "Don't need to override this, using the default of Pair-Icon.png";
+    public override string Portrait => "LuigiIcon";
+    public override int Path => TOP;
+    public override int Tier => 2;
+    public override int Cost => 500;
+
+    // public override string DisplayName => "Don't need to override this, the default turns it into 'Pair'"
+
+    // public override string Description => "Fireballs now light bloons on fire upon landing";
+    public override string Description => "Luigi's fireballs now light Bloons on fire upon landing";
+
+    public override void ApplyUpgrade(TowerModel towerModel)
+    {
+        //
+        //var FireL = Game.instance.model.GetTower(TowerType.MortarMonkey, 0, 0, 2).GetAttackModel().weapons[0].projectile.GetBehavior<CreateProjectileOnExhaustFractionModel>().projectile.GetBehavior<AddBehaviorToBloonModel>();
+        //towerModel.GetAttackModel().weapons[0].projectile.AddBehavior(FireL);
+        // towerModel.GetAttackModel().weapons[0].projectile.GetBehavior<DamageOverTimeModel>().Interval = 0.4f;
+        // attacks.weapons[0].projectile.GetBehavior<AddBehaviorToBloonModel>().GetBehavior<DamageOverTimeModel>().Interval = 0.4f;
+        // towerModel.GetAttackModel().weapons[0].projectile.collisionPasses = new[] { -1, 0 };
+        //towerModel.GetAttackModel().weapons[0].projectile.collisionPasses = new[] { 1, 0 };
+        //
+
+        foreach (var weaponModel in towerModel.GetWeapons())
+        {
+            var fire = Game.instance.model.GetTower(TowerType.MortarMonkey, 0, 0, 2).GetAttackModel().weapons[0].projectile.GetBehavior<CreateProjectileOnExhaustFractionModel>().projectile.GetBehavior<AddBehaviorToBloonModel>();
+            //var fire = Game.instance.model.GetTowerFromId("MortarMonkey-002").Duplicate<TowerModel>().GetBehavior<AttackModel>().weapons[0].projectile.GetBehavior<CreateProjectileOnExhaustFractionModel>().projectile.GetBehavior<AddBehaviorToBloonModel>();
+            // AttackModel attackModel = towerModel.GetBehavior<AttackModel>();
+            //var projectile = attackModel.weapons[0].projectile;
+            //towerModel.GetAttackModel().weapons[0].projectile.GetBehavior<CreateProjectileOnContactModel>().projectile.AddBehavior(fire);
+            towerModel.GetAttackModel().weapons[0].projectile.AddBehavior(fire);
+            //towerModel.GetAttackModel().weapons[0].projectile.GetBehavior<CreateProjectileOnContactModel>().projectile.collisionPasses = new int[] { 0, -1 };
+            towerModel.GetAttackModel().weapons[0].projectile.collisionPasses = new[] { 1, 0 };
+        }
+    }
+}
+
+public class HotterFireballs : ModUpgrade<LuigiAlt>
+{
+    // public override string Portrait => "Don't need to override this, using the default of Pair-Portrait.png";
+    // public override string Icon => "Don't need to override this, using the default of Pair-Icon.png";
+    public override string Portrait => "LuigiIcon";
+    public override int Path => TOP;
+    public override int Tier => 3;
+    public override int Cost => 1200;
+
+    // public override string DisplayName => "Don't need to override this, the default turns it into 'Pair'"
+
+    // public override string Description => "Fireballs now light bloons on fire upon landing";
+    public override string Description => "Luigi's fireballs now deal more damage";
+
+    public override void ApplyUpgrade(TowerModel towerModel)
+    {
+        //
+        //var FireL = Game.instance.model.GetTower(TowerType.MortarMonkey, 0, 0, 2).GetAttackModel().weapons[0].projectile.GetBehavior<CreateProjectileOnExhaustFractionModel>().projectile.GetBehavior<AddBehaviorToBloonModel>();
+        //towerModel.GetAttackModel().weapons[0].projectile.AddBehavior(FireL);
+        // towerModel.GetAttackModel().weapons[0].projectile.GetBehavior<DamageOverTimeModel>().Interval = 0.4f;
+        // attacks.weapons[0].projectile.GetBehavior<AddBehaviorToBloonModel>().GetBehavior<DamageOverTimeModel>().Interval = 0.4f;
+        // towerModel.GetAttackModel().weapons[0].projectile.collisionPasses = new[] { -1, 0 };
+        //towerModel.GetAttackModel().weapons[0].projectile.collisionPasses = new[] { 1, 0 };
+        //
+
+        foreach (var weaponModel in towerModel.GetWeapons())
+        {
+            var fire = Game.instance.model.GetTower(TowerType.MortarMonkey, 3, 0, 2).GetAttackModel().weapons[0].projectile.GetBehavior<CreateProjectileOnExhaustFractionModel>().projectile.GetBehavior<AddBehaviorToBloonModel>();
+            //var fire = Game.instance.model.GetTowerFromId("MortarMonkey-002").Duplicate<TowerModel>().GetBehavior<AttackModel>().weapons[0].projectile.GetBehavior<CreateProjectileOnExhaustFractionModel>().projectile.GetBehavior<AddBehaviorToBloonModel>();
+            // AttackModel attackModel = towerModel.GetBehavior<AttackModel>();
+            //var projectile = attackModel.weapons[0].projectile;
+            //towerModel.GetAttackModel().weapons[0].projectile.GetBehavior<CreateProjectileOnContactModel>().projectile.AddBehavior(fire);
+            towerModel.GetAttackModel().weapons[0].projectile.AddBehavior(fire);
+            //towerModel.GetAttackModel().weapons[0].projectile.GetBehavior<CreateProjectileOnContactModel>().projectile.collisionPasses = new int[] { 0, -1 };
+            towerModel.GetAttackModel().weapons[0].projectile.collisionPasses = new[] { -1, 0 };
+            towerModel.GetBehavior<AttackModel>().weapons[0].projectile.GetDamageModel().damage += 1;
+        }
+        
+        //{
+        //    var fire = Game.instance.model.GetTower(TowerType.MortarMonkey, 3, 0, 2).GetAttackModel().weapons[0].projectile.GetBehavior<CreateProjectileOnExhaustFractionModel>().projectile.GetBehavior<AddBehaviorToBloonModel>();
+        //    //var fire = Game.instance.model.GetTowerFromId("MortarMonkey-302").Duplicate<TowerModel>().GetBehavior<AttackModel>().weapons[0].projectile.GetBehavior<CreateProjectileOnExhaustFractionModel>().projectile.GetBehavior<AddBehaviorToBloonModel>();
+        //    AttackModel attackModel = towerModel.GetBehavior<AttackModel>();
+        //    var projectile = attackModel.weapons[0].projectile;
+        //    projectile.GetDamageModel().damage += 1;
+        //    attackModel.weapons[0].projectile.GetBehavior<CreateProjectileOnContactModel>().projectile.AddBehavior(fire);
+        //    attackModel.weapons[0].projectile.GetBehavior<CreateProjectileOnContactModel>().projectile.collisionPasses = new int[] { 0, -1 };
+        //}
+
+    }
+}
+
+public class PerishingFireballs : ModUpgrade<LuigiAlt>
+{
+    // public override string Portrait => "Don't need to override this, using the default of Pair-Portrait.png";
+    // public override string Icon => "Don't need to override this, using the default of Pair-Icon.png";
+    public override string Portrait => "LuigiIcon";
+    public override int Path => TOP;
+    public override int Tier => 4;
+    public override int Cost => 2000;
+
+    // public override string DisplayName => "Don't need to override this, the default turns it into 'Pair'"
+
+    // public override string Description => "Fireballs now light bloons on fire upon landing";
+    public override string Description => "Luigi's fireballs now deal more damage";
+
+    public override void ApplyUpgrade(TowerModel towerModel)
+    {
+        foreach (var weaponModel in towerModel.GetWeapons())
+        {
+            var fire = Game.instance.model.GetTower(TowerType.MortarMonkey, 4, 0, 2).GetAttackModel().weapons[0].projectile.GetBehavior<CreateProjectileOnExhaustFractionModel>().projectile.GetBehavior<AddBehaviorToBloonModel>();
+            //var fire = Game.instance.model.GetTowerFromId("MortarMonkey-002").Duplicate<TowerModel>().GetBehavior<AttackModel>().weapons[0].projectile.GetBehavior<CreateProjectileOnExhaustFractionModel>().projectile.GetBehavior<AddBehaviorToBloonModel>();
+            // AttackModel attackModel = towerModel.GetBehavior<AttackModel>();
+            //var projectile = attackModel.weapons[0].projectile;
+            //towerModel.GetAttackModel().weapons[0].projectile.GetBehavior<CreateProjectileOnContactModel>().projectile.AddBehavior(fire);
+            towerModel.GetAttackModel().weapons[0].projectile.AddBehavior(fire);
+            //towerModel.GetAttackModel().weapons[0].projectile.GetBehavior<CreateProjectileOnContactModel>().projectile.collisionPasses = new int[] { 0, -1 };
+            towerModel.GetAttackModel().weapons[0].projectile.collisionPasses = new[] { -1, 0 };
+            //towerModel.GetBehavior<AttackModel>().weapons[0].projectile.GetDamageModel().damage += 1;
+
+        }
+        //foreach (var weaponModel in towerModel.GetWeapons())
+        //{
+            //weaponModel.projectile.GetDamageModel().immuneBloonProperties = BloonProperties.None;
+        //}
+        
+        // attackModel.weapons[0].projectile.AddBehavior(Game.instance.model.GetTowerFromId("NinjaMonkey-020").GetAttackModel().weapons[0].projectile.GetBehavior<CreateSoundOnProjectileCollisionModel>().Duplicate());
+        // attackModel.weapons[0].projectile.AddBehavior(Game.instance.model.GetTowerFromId("NinjaMonkey-020").GetAttackModel().weapons[0].projectile.GetBehavior<SlowModifierForTagModel>().Duplicate());
+        //foreach (var beh in Game.instance.model.GetTower(TowerType.Alchemist, 0, 2, 0).GetAttackModel().weapons[0].projectile.GetBehaviors<AddBehaviorToBloonModel>())
+        //{
+        //    attackModel.weapons[0].projectile.AddBehavior(beh.Duplicate());
+        //}
+        //towerModel.GetDescendants<FilterInvisibleModel>().ForEach(model => model.isActive = false);
+    }
+}
+public class BlooncineratingFireballs : ModUpgrade<LuigiAlt>
+{
+    // public override string Portrait => "Don't need to override this, using the default of Pair-Portrait.png";
+    // public override string Icon => "Don't need to override this, using the default of Pair-Icon.png";
+    public override string Portrait => "LuigiIcon";
+    public override int Path => TOP;
+    public override int Tier => 5;
+    public override int Cost => 50000;
+
+    // public override string DisplayName => "Don't need to override this, the default turns it into 'Pair'"
+
+    // public override string Description => "Fireballs now light bloons on fire upon landing";
+    public override string Description => "Luigi's fireballs now deal more damage";
+
+    public override void ApplyUpgrade(TowerModel towerModel)
+    {
+        foreach (var weaponModel in towerModel.GetWeapons())
+        {
+            var fire = Game.instance.model.GetTower(TowerType.MortarMonkey, 0, 0, 5).GetAttackModel().weapons[0].projectile.GetBehavior<CreateProjectileOnExhaustFractionModel>().projectile.GetBehavior<AddBehaviorToBloonModel>();
+            //var fire = Game.instance.model.GetTowerFromId("MortarMonkey-002").Duplicate<TowerModel>().GetBehavior<AttackModel>().weapons[0].projectile.GetBehavior<CreateProjectileOnExhaustFractionModel>().projectile.GetBehavior<AddBehaviorToBloonModel>();
+            // AttackModel attackModel = towerModel.GetBehavior<AttackModel>();
+            //var projectile = attackModel.weapons[0].projectile;
+            //towerModel.GetAttackModel().weapons[0].projectile.GetBehavior<CreateProjectileOnContactModel>().projectile.AddBehavior(fire);
+            //towerModel.GetAttackModel().weapons[0].projectile.AddBehavior(fire);
+            //towerModel.GetAttackModel().weapons[0].projectile.GetBehavior<CreateProjectileOnContactModel>().projectile.collisionPasses = new int[] { 0, -1 };
+            //towerModel.GetAttackModel().weapons[0].projectile.collisionPasses = new[] { -1, 0 };
+            towerModel.GetBehavior<AttackModel>().weapons[0].projectile.GetDamageModel().damage += 3;
+        }
+    }
+}
+public class LighterFireballs : ModUpgrade<LuigiAlt>
 {
     // public override string Portrait => "Don't need to override this, using the default of Pair-Portrait.png";
     // public override string Icon => "Don't need to override this, using the default of Pair-Icon.png";
     public override string Portrait => "LuigiIcon";
     public override int Path => MIDDLE;
     public override int Tier => 1;
-    public override int Cost => 400;
-
-    // public override string DisplayName => "Don't need to override this, the default turns it into 'Pair'"
-
-    public override string Description => "Fireballs now light bloons on fire upon landing";
-
-    public override void ApplyUpgrade(TowerModel towerModel)
-    {
-
-        var Fire = Game.instance.model.GetTower(TowerType.MortarMonkey, 0, 0, 2).GetAttackModel().weapons[0].projectile.GetBehavior<CreateProjectileOnExhaustFractionModel>().projectile.GetBehavior<AddBehaviorToBloonModel>();
-        towerModel.GetAttackModel().weapons[0].projectile.AddBehavior(Fire);
-        towerModel.GetAttackModel().weapons[0].projectile.collisionPasses = new[] { -1, 0 };
-    }
-}
-public class LighterFireballs : ModUpgrade<Luigi>
-{
-    // public override string Portrait => "Don't need to override this, using the default of Pair-Portrait.png";
-    // public override string Icon => "Don't need to override this, using the default of Pair-Icon.png";
-    public override string Portrait => "LuigiIcon";
-    public override int Path => MIDDLE;
-    public override int Tier => 2;
     public override int Cost => 1000;
 
     // public override string DisplayName => "Don't need to override this, the default turns it into 'Pair'"
@@ -109,14 +286,125 @@ public class LighterFireballs : ModUpgrade<Luigi>
         towerModel.GetAttackModel().weapons[0].Rate *= .4f;
     }
 }
-public class SuperThump : ModUpgrade<Luigi>
+public class LuigiSense : ModUpgrade<LuigiAlt>
+{
+    // public override string Portrait => "Don't need to override this, using the default of Pair-Portrait.png";
+    // public override string Icon => "Don't need to override this, using the default of Pair-Icon.png";
+    public override string Portrait => "LuigiIcon";
+    public override int Path => BOTTOM;
+    public override int Tier => 2;
+    public override int Cost => 1000;
+
+    // public override string DisplayName => "Don't need to override this, the default turns it into 'Pair'"
+
+    public override string Description => "Luigi see Camo Bloons";
+
+    public override void ApplyUpgrade(TowerModel towerModel)
+    {
+
+        towerModel.AddBehavior(new OverrideCamoDetectionModel("camooo", true));
+        towerModel.range += 5f;
+    }
+}
+public class ShimmeringFireballs : ModUpgrade<LuigiAlt>
+{
+    // public override string Portrait => "Don't need to override this, using the default of Pair-Portrait.png";
+    // public override string Icon => "Don't need to override this, using the default of Pair-Icon.png";
+    public override string Portrait => "LuigiIcon";
+    public override int Path => BOTTOM;
+    public override int Tier => 3;
+    public override int Cost => 1000;
+
+    // public override string DisplayName => "Don't need to override this, the default turns it into 'Pair'"
+
+    public override string Description => "Luigi's fireballs strip camo properties from Bloons and can hit more Bloons";
+
+    public override void ApplyUpgrade(TowerModel towerModel)
+    {
+        foreach (var weaponModel in towerModel.GetWeapons())
+        {
+            //weaponModel.projectile.GetDamageModel().immuneBloonProperties = BloonProperties.None;
+        }
+        var attackModel = towerModel.GetAttackModel();
+        var projectile = attackModel.weapons[0].projectile;
+        attackModel.weapons[0].projectile.collisionPasses = new int[] { -1, 0, 1 };
+        attackModel.weapons[0].projectile.AddBehavior(Game.instance.model.GetTowerFromId("NinjaMonkey-020").GetAttackModel().weapons[0].projectile.GetBehavior<RemoveBloonModifiersModel>().Duplicate());
+        // attackModel.weapons[0].projectile.AddBehavior(Game.instance.model.GetTowerFromId("NinjaMonkey-020").GetAttackModel().weapons[0].projectile.GetBehavior<CreateSoundOnProjectileCollisionModel>().Duplicate());
+        // attackModel.weapons[0].projectile.AddBehavior(Game.instance.model.GetTowerFromId("NinjaMonkey-020").GetAttackModel().weapons[0].projectile.GetBehavior<SlowModifierForTagModel>().Duplicate());
+        foreach (var beh in Game.instance.model.GetTowerFromId("NinjaMonkey-020").GetAttackModel().weapons[0].projectile.GetBehaviors<AddBehaviorToBloonModel>())
+        {
+            attackModel.weapons[0].projectile.AddBehavior(beh.Duplicate());
+        }
+        towerModel.GetDescendants<FilterInvisibleModel>().ForEach(model => model.isActive = false);
+
+        //if (towerModel.tier < 4)
+        //{
+        //    projectile.ApplyDisplay<PeppermintDisplayPurple>();
+        //
+        //}
+    }
+}
+public class GoldenFireballs : ModUpgrade<LuigiAlt>
+{
+    // public override string Portrait => "Don't need to override this, using the default of Pair-Portrait.png";
+    // public override string Icon => "Don't need to override this, using the default of Pair-Icon.png";
+    public override string Portrait => "LuigiIcon";
+    public override int Path => BOTTOM;
+    public override int Tier => 4;
+    public override int Cost => 0;
+
+    // public override string DisplayName => "Don't need to override this, the default turns it into 'Pair'"
+
+    public override string Description => "Placeholder";
+
+    public override void ApplyUpgrade(TowerModel towerModel)
+    {
+        foreach (var weaponModel in towerModel.GetWeapons())
+        {
+            //weaponModel.projectile.GetDamageModel().immuneBloonProperties = BloonProperties.None;
+        }
+        var attackModel = towerModel.GetAttackModel();
+        var projectile = attackModel.weapons[0].projectile;
+        attackModel.weapons[0].projectile.collisionPasses = new int[] { -1, 0, 1 };
+        attackModel.weapons[0].projectile.AddBehavior(Game.instance.model.GetTowerFromId("NinjaMonkey-020").GetAttackModel().weapons[0].projectile.GetBehavior<RemoveBloonModifiersModel>().Duplicate());
+        // attackModel.weapons[0].projectile.AddBehavior(Game.instance.model.GetTowerFromId("NinjaMonkey-020").GetAttackModel().weapons[0].projectile.GetBehavior<CreateSoundOnProjectileCollisionModel>().Duplicate());
+        // attackModel.weapons[0].projectile.AddBehavior(Game.instance.model.GetTowerFromId("NinjaMonkey-020").GetAttackModel().weapons[0].projectile.GetBehavior<SlowModifierForTagModel>().Duplicate());
+        foreach (var beh in Game.instance.model.GetTowerFromId("NinjaMonkey-020").GetAttackModel().weapons[0].projectile.GetBehaviors<AddBehaviorToBloonModel>())
+        {
+            attackModel.weapons[0].projectile.AddBehavior(beh.Duplicate());
+        }
+        towerModel.GetDescendants<FilterInvisibleModel>().ForEach(model => model.isActive = false);
+    }
+
+}
+public class LongRangeLuigi : ModUpgrade<LuigiAlt>
+{
+    // public override string Portrait => "Don't need to override this, using the default of Pair-Portrait.png";
+    // public override string Icon => "Don't need to override this, using the default of Pair-Icon.png";
+    public override string Portrait => "LuigiIcon";
+    public override int Path => BOTTOM;
+    public override int Tier => 1;
+    public override int Cost => 1000;
+
+    // public override string DisplayName => "Don't need to override this, the default turns it into 'Pair'"
+
+    public override string Description => "Longer range";
+
+    public override void ApplyUpgrade(TowerModel towerModel)
+    {
+
+        towerModel.range += 25f;
+        //attackModel.range += 25f;
+    }
+}
+public class SuperThump : ModUpgrade<LuigiAlt>
 {
     // public override string Portrait => "Don't need to override this, using the default of Pair-Portrait.png";
     // public override string Icon => "Don't need to override this, using the default of Pair-Icon.png";
     public override string Portrait => "LuigiIcon";
     public override int Path => MIDDLE;
-    public override int Tier => 3;
-    public override int Cost => 0;//3500
+    public override int Tier => 2;
+    public override int Cost => 3900;//3500
 
     // public override string DisplayName => "Don't need to override this, the default turns it into 'Pair'"
 
@@ -136,13 +424,13 @@ public class SuperThump : ModUpgrade<Luigi>
         towerModel.AddBehavior(weapon);
     }
 }
-public class Shockwaves : ModUpgrade<Luigi>
+public class Shockwaves : ModUpgrade<LuigiAlt>
 {
     // public override string Portrait => "Don't need to override this, using the default of Pair-Portrait.png";
     // public override string Icon => "Don't need to override this, using the default of Pair-Icon.png";
     public override string Portrait => "LuigiIcon";
     public override int Path => MIDDLE;
-    public override int Tier => 4;
+    public override int Tier => 3;
     public override int Cost => 7000;
 
     // public override string DisplayName => "Don't need to override this, the default turns it into 'Pair'"
@@ -164,22 +452,23 @@ public class Shockwaves : ModUpgrade<Luigi>
                 wind.distanceMin = 2;   
                 attacks.weapons[0].projectile.GetBehavior<CreateProjectileOnContactModel>().projectile.AddBehavior(wind);
             }
-            else
-            {
-                attacks.weapons[0].projectile.GetBehavior<AddBehaviorToBloonModel>().GetBehavior<DamageOverTimeModel>().Interval = .2f;
-                attacks.weapons[0].projectile.GetBehavior<AddBehaviorToBloonModel>().GetBehavior<DamageOverTimeModel>().damage = 3f;
-                attacks.weapons[0].Rate *= .5f;
-            }
+           // else
+            //{
+                //attacks.weapons[0].projectile.GetBehavior<AddBehaviorToBloonModel>().GetBehavior<DamageOverTimeModel>().Interval = .2f;
+                //attacks.weapons[0].projectile.GetBehavior<AddBehaviorToBloonModel>().GetBehavior<DamageOverTimeModel>().damage = 3f;
+                //attacks.weapons[0].Rate *= .5f;
+           // }
         }
     }
 }
-public class Superuigi : ModUpgrade<Luigi>
+/*
+public class Superuigi : ModUpgrade<LuigiAlt>
 {
     // public override string Portrait => "Don't need to override this, using the default of Pair-Portrait.png";
     // public override string Icon => "Don't need to override this, using the default of Pair-Icon.png";
     public override string Portrait => "LuigiIcon";
-    public override int Path => MIDDLE;
-    public override int Tier => 5;
+    public override int Path => TOP;
+    public override int Tier => 4; // 5
     public override int Cost => 8500000;
 
     // public override string DisplayName => "Don't need to override this, the default turns it into 'Pair'"
@@ -196,9 +485,12 @@ public class Superuigi : ModUpgrade<Luigi>
             {
                 attacks.weapons[0].Rate *= .001f;
                 attacks.weapons[0].projectile.GetBehavior<CreateProjectileOnContactModel>().projectile.pierce = 9000000;
-                var wind = attacks.weapons[0].projectile.GetBehavior<CreateProjectileOnContactModel>().projectile.GetBehavior<WindModel>();
-                wind.affectMoab = true;
-                wind.speedMultiplier = 0;
+                //if (attacks.weapons[0].projectile.GetBehavior<CreateProjectileOnContactModel>().projectile.pierce == 0000) // 53X
+                //{
+                //    var wind = attacks.weapons[0].projectile.GetBehavior<CreateProjectileOnContactModel>().projectile.GetBehavior<WindModel>();
+                //    wind.affectMoab = true;
+                //    wind.speedMultiplier = 0;
+                //}
             }
             else
             {
@@ -215,3 +507,4 @@ public class Superuigi : ModUpgrade<Luigi>
         towerModel.AddBehavior(new OverrideCamoDetectionModel("camooo", true));
     }
 }
+*/

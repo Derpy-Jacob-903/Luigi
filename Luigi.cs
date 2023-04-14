@@ -327,8 +327,8 @@ public class ShimmeringFireballs : ModUpgrade<LuigiAlt>
         }
         var attackModel = towerModel.GetAttackModel();
         var projectile = attackModel.weapons[0].projectile;
-        attackModel.weapons[0].projectile.collisionPasses = new int[] { -1, 0, 1 };
-        attackModel.weapons[0].projectile.AddBehavior(Game.instance.model.GetTowerFromId("NinjaMonkey-020").GetAttackModel().weapons[0].projectile.GetBehavior<RemoveBloonModifiersModel>().Duplicate());
+        projectile.collisionPasses = new int[] { -1, 0, 1 };
+        projectile.AddBehavior(Game.instance.model.GetTowerFromId("NinjaMonkey-020").GetAttackModel().weapons[0].projectile.GetBehavior<RemoveBloonModifiersModel>().Duplicate());
         // attackModel.weapons[0].projectile.AddBehavior(Game.instance.model.GetTowerFromId("NinjaMonkey-020").GetAttackModel().weapons[0].projectile.GetBehavior<CreateSoundOnProjectileCollisionModel>().Duplicate());
         // attackModel.weapons[0].projectile.AddBehavior(Game.instance.model.GetTowerFromId("NinjaMonkey-020").GetAttackModel().weapons[0].projectile.GetBehavior<SlowModifierForTagModel>().Duplicate());
         foreach (var beh in Game.instance.model.GetTowerFromId("NinjaMonkey-020").GetAttackModel().weapons[0].projectile.GetBehaviors<AddBehaviorToBloonModel>())
@@ -364,15 +364,18 @@ public class GoldenFireballs : ModUpgrade<LuigiAlt>
             //weaponModel.projectile.GetDamageModel().immuneBloonProperties = BloonProperties.None;
         }
         var attackModel = towerModel.GetAttackModel();
-        var projectile = attackModel.weapons[0].projectile;
-        attackModel.weapons[0].projectile.collisionPasses = new int[] { -1, 0, 1 };
-        attackModel.weapons[0].projectile.AddBehavior(Game.instance.model.GetTowerFromId("NinjaMonkey-020").GetAttackModel().weapons[0].projectile.GetBehavior<RemoveBloonModifiersModel>().Duplicate());
-        // attackModel.weapons[0].projectile.AddBehavior(Game.instance.model.GetTowerFromId("NinjaMonkey-020").GetAttackModel().weapons[0].projectile.GetBehavior<CreateSoundOnProjectileCollisionModel>().Duplicate());
-        // attackModel.weapons[0].projectile.AddBehavior(Game.instance.model.GetTowerFromId("NinjaMonkey-020").GetAttackModel().weapons[0].projectile.GetBehavior<SlowModifierForTagModel>().Duplicate());
-        foreach (var beh in Game.instance.model.GetTowerFromId("NinjaMonkey-020").GetAttackModel().weapons[0].projectile.GetBehaviors<AddBehaviorToBloonModel>())
-        {
-            attackModel.weapons[0].projectile.AddBehavior(beh.Duplicate());
-        }
+        //
+        var goldCard = tower.GetWeapon();
+            //goldCard.name = "WeaponModel_GoldCard";
+            var r2gAlch = Game.instance.model.GetTower(TowerType.Alchemist, 0, 0, 4);
+            var increaseBloonWorthModel =
+                r2gAlch.GetAttackModels()[1].GetDescendant<IncreaseBloonWorthModel>().Duplicate();
+            var filterOutTagModel = r2gAlch.GetDescendant<FilterOutTagModel>().Duplicate();
+            increaseBloonWorthModel.filter = filterOutTagModel;
+            goldCard.projectile.collisionPasses = new[] {-1, 0};
+            goldCard.projectile.AddBehavior(increaseBloonWorthModel);
+            
+         //
         towerModel.GetDescendants<FilterInvisibleModel>().ForEach(model => model.isActive = false);
     }
 
@@ -459,6 +462,52 @@ public class Shockwaves : ModUpgrade<LuigiAlt>
                 //attacks.weapons[0].Rate *= .5f;
            // }
         }
+    }
+}
+public class TierFour : ModUpgrade<LuigiAlt>
+{
+    // public override string Portrait => "Don't need to override this, using the default of Pair-Portrait.png";
+    // public override string Icon => "Don't need to override this, using the default of Pair-Icon.png";
+    public override string Portrait => "LuigiIcon";
+    public override int Path => MIDDLE;
+    public override int Tier => 1;
+    public override int Cost => 1000;
+
+    // public override string DisplayName => "Don't need to override this, the default turns it into 'Pair'"
+
+    public override string Description => "Lighter fireballs allow much faster firing";
+
+    public override void ApplyUpgrade(TowerModel towerModel)
+    {
+
+        towerModel.GetAttackModel().weapons[0].Rate *= .4f;
+    }
+}
+public class MoabThump : ModUpgrade<LuigiAlt>
+{
+    // public override string Portrait => "Don't need to override this, using the default of Pair-Portrait.png";
+    // public override string Icon => "Don't need to override this, using the default of Pair-Icon.png";
+    public override string Portrait => "LuigiIcon";
+    public override int Path => MIDDLE;
+    public override int Tier => 5;
+    public override int Cost => 3900;//3500
+
+    // public override string DisplayName => "Don't need to override this, the default turns it into 'Pair'"
+
+    public override string Description => "Luigi gains a ground pound attack";
+
+    public override void ApplyUpgrade(TowerModel towerModel)
+    {
+
+        if (attacks.name.Contains("Ground"))
+            {
+                
+                attacks.weapons[0].Rate *= .4f;
+                //var wind = Game.instance.model.GetTower(TowerType.NinjaMonkey, 0, 2, 0).GetAttackModel().weapons[0].projectile.GetBehavior<WindModel>();
+                //wind.distanceMax = 20;
+                //wind.distanceMin = 2;   
+                //attacks.weapons[0].projectile.GetBehavior<CreateProjectileOnContactModel>().projectile.AddBehavior(wind);
+            }
     }
 }
 /*

@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFramework>net48</TargetFramework>
-        <RootNamespace>Luigi</RootNamespace>
+        <TargetFramework>net6.0</TargetFramework>
+			<RootNamespace>Luigi</RootNamespace>
         <Configurations>Debug;Release</Configurations>
         <Nullable>enable</Nullable>
         <AssemblyName>Luigi</AssemblyName>

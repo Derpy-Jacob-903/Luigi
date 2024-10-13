@@ -57,13 +57,7 @@ public class LuigiTower : BloonsTD6Mod
     //{
         //displayName = "Alternate Ground Pound",
         //icon = "LighterFireballs-Icon",
-        //description = "Luigi's Fireballs use a 'Impact' (i.e. Sniper, COBRA) attack that explodes instead of a exploding projectile. "
-    //};
-    //public static ModSettingBool AltKnockback = new ModSettingBool(false)
-    //{
-        //displayName = "Alternate Knockback",
-        //icon = "LighterFireballs-Icon",
-        //description = "Makes Tier 4+ Luigi's Ground Pound use a literal 'KnockbackModel' instead of a 'WindModel' (i.e. Distraction Ninja.) I would not recommend using this one tbh."
+        //description = "Luigi's Fireballs use a 'Impact' (i.e. Sniper, COBRA) attack that explodes instead of a exploding projectile."
     //};
 
 }
@@ -202,22 +196,10 @@ public class Shockwaves : ModUpgrade<Luigi>
             if (attacks.name.Contains("Ground"))
             {
                 attacks.weapons[0].Rate *= .4f;
-                //if (LuigiTower.AltKnockback)
-                //{
-                    //var wind = Game.instance.model.GetTower(TowerType.SuperMonkey, 0, 0, 4).GetAttackModel().weapons[0].projectile.GetBehavior<KnockbackModel>();
-                    //wind.lightMultiplier += 1;
-                    //wind.heavyMultiplier += 1;
-                    //wind.moabMultiplier = 0;
-                    //wind.lifespan = wind.Lifespan = 3;
-                    //attacks.weapons[0].projectile.GetBehavior<CreateProjectileOnContactModel>().projectile.AddBehavior(wind);
-                //}
-                //else
-                //{
-                    var wind = Game.instance.model.GetTower(TowerType.NinjaMonkey, 0, 2, 0).GetAttackModel().weapons[0].projectile.GetBehavior<WindModel>();
-                    wind.distanceMax = 20;
-                    wind.distanceMin = 2;
-                    attacks.weapons[0].projectile.GetBehavior<CreateProjectileOnContactModel>().projectile.AddBehavior(wind);
-                //}
+                var wind = Game.instance.model.GetTower(TowerType.NinjaMonkey, 0, 2, 0).GetAttackModel().weapons[0].projectile.GetBehavior<WindModel>();
+                wind.distanceMax = 20;
+                wind.distanceMin = 2;
+                attacks.weapons[0].projectile.GetBehavior<CreateProjectileOnContactModel>().projectile.AddBehavior(wind);
             }
             else
             {
@@ -261,17 +243,6 @@ public class Superuigi : ModUpgrade<Luigi>
             {
                 attacks.weapons[0].Rate *= .001f;
                 attacks.weapons[0].projectile.GetBehavior<CreateProjectileOnContactModel>().projectile.pierce = 9000000;
-
-                //if (LuigiTower.AltKnockback)
-                //{
-                    //var knockback = attacks.weapons[0].projectile.GetBehavior<CreateProjectileOnContactModel>().projectile.GetBehavior<KnockbackModel>();
-
-                    //knockback.lightMultiplier = 1; //technically a reduction,
-                    //knockback.heavyMultiplier = 1; //but w/o this the bloon would move in reverse PERMANANTLY,
-                    //knockback.moabMultiplier = 1f; //which isnt ideal imo.
-                    //knockback.lifespan += 999999;
-                //}
-                //else
                 {
                     var wind = attacks.weapons[0].projectile.GetBehavior<CreateProjectileOnContactModel>().projectile.GetBehavior<WindModel>();
                     wind.affectMoab = true;

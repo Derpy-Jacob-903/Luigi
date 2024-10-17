@@ -81,7 +81,7 @@ public class Luigi : ModTower
         towerModel.GetAttackModel().weapons[0].projectile = Game.instance.model.GetTower(TowerType.MonkeySub).GetAttackModel().weapons[0].projectile.Duplicate();
         towerModel.GetAttackModel().weapons[0].projectile.GetDamageModel().immuneBloonProperties = Il2Cpp.BloonProperties.None;
         if (LuigiTower.IsPlasma) { towerModel.GetAttackModel().weapons[0].projectile.GetDamageModel().immuneBloonProperties = Il2Cpp.BloonProperties.Purple; }
-        //towerModel.GetAttackModel().weapons[0].projectile.ApplyDisplay<FireBallDisplay>();
+        towerModel.GetAttackModel().weapons[0].projectile.ApplyDisplay<FireBallDisplay>();
         
     }
 
